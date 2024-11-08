@@ -1,5 +1,7 @@
 import 'package:e_commerce/model/product_model.dart';
+import 'package:e_commerce/view/cart_page.dart';
 import 'package:e_commerce/widgets/build_container.dart';
+import 'package:e_commerce/widgets/build_elevated_buttons.dart';
 import 'package:e_commerce/widgets/build_icon_buttons.dart';
 import 'package:e_commerce/widgets/build_texts.dart';
 import 'package:flutter/material.dart';
@@ -8,9 +10,12 @@ import 'package:get/get.dart';
 import '../controller.dart';
 
 class DetailPage extends StatefulWidget {
-  final Product product;
+  final Product? product;
 
-  const DetailPage({super.key, required this.product});
+  const DetailPage({
+    super.key,
+    this.product,
+  });
 
   @override
   State<DetailPage> createState() => _DetailPageState();
@@ -19,15 +24,7 @@ class DetailPage extends StatefulWidget {
 class _DetailPageState extends State<DetailPage> {
   final ProductController productController = Get.put(ProductController());
   String imagePath = "https://mansharcart.com/image/";
-
-  @override
-  void initState() {
-    print("widget.product.thumb");
-    print(widget.product.thumb);
-    print("${imagePath}${widget.product.thumb!}");
-    // TODO: implement initState
-    super.initState();
-  }
+  RxBool isAdding = false.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +59,13 @@ class _DetailPageState extends State<DetailPage> {
               textStyle: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
-                  fontSize: 20),
+                  fontSize: 22),
             ),
           )
         ],
       ),
-      body: Column(
-        children: [
+      body: SingleChildScrollView(
+        child: Column(children: [
           Padding(
             padding: const EdgeInsets.only(top: 30),
             child: Center(
@@ -83,14 +80,14 @@ class _DetailPageState extends State<DetailPage> {
                 ),
                 height: MediaQuery.of(context).size.height / 2,
                 width: MediaQuery.of(context).size.width / 1.2,
-                child: widget.product.thumb == null
+                child: widget.product?.thumb == null
                     ? const Center(
                         child: BuildIconButtons(
                           icon: Icon(Icons.image_not_supported),
                         ),
                       )
                     : Image.network(
-                        "$imagePath${widget.product.thumb!}",
+                        "$imagePath${widget.product?.thumb!}",
                         fit: BoxFit.cover,
                       ),
               ),
@@ -112,7 +109,7 @@ class _DetailPageState extends State<DetailPage> {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 15, left: 15),
                     child: BuildTexts(
-                      texts: widget.product.name ?? "No name",
+                      texts: widget.product?.name ?? "No name",
                       textStyle: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -133,7 +130,7 @@ class _DetailPageState extends State<DetailPage> {
                     child: Padding(
                       padding: const EdgeInsets.only(top: 15, left: 15),
                       child: BuildTexts(
-                        texts: widget.product.price ?? "0",
+                        texts: widget.product?.price ?? "0",
                         textStyle: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -141,8 +138,52 @@ class _DetailPageState extends State<DetailPage> {
                 ),
               ],
             ),
+          ),
+          SizedBox(
+            height: MediaQuery.of(context).size.height / 14,
+          ),
+          Obx(
+            () => SizedBox(
+              height: 50,
+              width: MediaQuery.of(context).size.width / 1.3,
+              child: BuildElevatedButtons(
+                buttonStyle: const ButtonStyle(
+                    shape: WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(9),
+                        ),
+                      ),
+                    ),
+                    backgroundColor: WidgetStatePropertyAll(Colors.black)),
+                onPressed: productController.cart.any(
+                            (cartItem) => cartItem.id == widget.product!.id) ||
+                        isAdding.value
+                    ? null
+                    : () {
+                        isAdding.value = true;
+                        productController.addToCart(widget.product!);
+                        isAdding.value = false;
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CartPage(),
+                            ));
+                      },
+                child: BuildTexts(
+                  texts: productController.cart
+                          .any((cartItem) => cartItem.id == widget.product!.id)
+                      ? "Added"
+                      : "Add to Cart",
+                  textStyle: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18),
+                ),
+              ),
+            ),
           )
-        ],
+        ]),
       ),
     );
   }

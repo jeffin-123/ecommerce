@@ -14,6 +14,7 @@ class BuildTexts extends StatelessWidget {
     return Text(
       texts ?? " ",
       style: textStyle,
+
     );
   }
 }

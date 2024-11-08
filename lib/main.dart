@@ -1,8 +1,16 @@
 // import 'package:e_commerce/pages/home_page.dart';
 import 'package:e_commerce/view/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
 
-void main() {
+import 'model/hive.dart';
+
+Box? box;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(HiveProductAdapter());
   runApp(const MyApp());
 }
 
